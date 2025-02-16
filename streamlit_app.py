@@ -7,15 +7,15 @@ import streamlit as st
 
 
 ## Load model 
-model = tf.keras.models.load_model('model.h5')
+model = tf.keras.models.load_model('models/model.h5')
 
-with open('label_encoder_gender.pkl', 'rb') as file:
+with open('preprocessors/label_encoder_gender.pkl', 'rb') as file:
     label_encoder_gender = pickle.load(file)
 
-with open('on_hot_encoder_geography.pkl', 'rb') as file:
+with open('preprocessors/on_hot_encoder_geography.pkl', 'rb') as file:
     on_hot_encoder_geography = pickle.load(file)
 
-with open('scalar.pkl', 'rb') as file:
+with open('preprocessors/scalar.pkl', 'rb') as file:
     scaler = pickle.load(file)    
 
 # Streamlit APP
