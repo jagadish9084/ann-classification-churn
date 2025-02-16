@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customer Churn Prediction</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h2 class="text-center text-primary">📊 Customer Churn Prediction</h2>
+        <p class="text-center">Enter the customer details to predict churn probability.</p>
+
+        <div class="card shadow p-4">
+            <form id="churn-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Gender:</label>
+                        <select class="form-select" id="gender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Geography:</label>
+                        <select class="form-select" id="geography">
+                            <option value="France">France</option>
+                            <option value="Germany">Germany</option>
+                            <option value="Spain">Spain</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Credit Score:</label>
+                        <input type="number" class="form-control" id="credit_score" min="300" max="900" value="650">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Age:</label>
+                        <input type="number" class="form-control" id="age" min="18" max="92" value="30">
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Balance:</label>
+                        <input type="number" class="form-control" id="balance" step="100" value="50000">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Estimated Salary:</label>
+                        <input type="number" class="form-control" id="estimated_salary" step="500" value="80000">
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Tenure:</label>
+                        <input type="number" class="form-control" id="tenure" min="0" max="10" value="3">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Number of Products:</label>
+                        <input type="number" class="form-control" id="num_of_products" min="1" max="4" value="1">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Has Credit Card?</label>
+                        <select class="form-select" id="has_credit_card">
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Is Active Member?</label>
+                        <select class="form-select" id="is_active_member">
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="button" class="btn btn-primary btn-lg" id="predict-btn">🔍 Predict Churn</button>
+                </div>
+            </form>
+
+            <div class="alert alert-info mt-4 text-center" id="result" style="display:none;"></div>
+            <div class="progress mt-3" style="height: 10px;">
+                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            $("#predict-btn").click(function(){
+                var formData = {
+                    "gender": $("#gender").val(),
+                    "geography": $("#geography").val(),
+                    "credit_score": $("#credit_score").val(),
+                    "age": $("#age").val(),
+                    "balance": $("#balance").val(),
+                    "estimated_salary": $("#estimated_salary").val(),
+                    "tenure": $("#tenure").val(),
+                    "num_of_products": $("#num_of_products").val(),
+                    "has_credit_card": $("#has_credit_card").val(),
+                    "is_active_member": $("#is_active_member").val()
+                };
+
+                $("#progress-bar").show().css("width", "30%");
+                $("#result").hide();
+
+                $.ajax({
+                    type: "POST",
+                    url: "/predict",
+                    contentType: "application/json",
+                    data: JSON.stringify(formData),
+                    success: function(response){
+                        $("#progress-bar").css("width", "100%").fadeOut(500);
+                        var probability = response.churn_probability * 100;
+                        var message = probability > 50 ? "⚠️ High Churn Risk: " + probability.toFixed(2) + "%" : "✅ Low Churn Risk: " + probability.toFixed(2) + "%";
+                        var alertClass = probability > 50 ? "alert-danger" : "alert-success";
+                        $("#result").removeClass("alert-danger alert-success").addClass(alertClass).text(message).fadeIn();
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
