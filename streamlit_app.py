@@ -18,21 +18,35 @@ with open('preprocessors/on_hot_encoder_geography.pkl', 'rb') as file:
 with open('preprocessors/scalar.pkl', 'rb') as file:
     scaler = pickle.load(file)    
 
-# Streamlit APP
-st.title("Customer Churn Prediction")
+# Streamlit UI
+st.set_page_config(page_title="Customer Churn Prediction", page_icon="📊", layout="wide")
+st.markdown("""
+    <style>
+    .big-font { font-size:24px !important; }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("📊 Customer Churn Prediction")
+st.markdown("Predict whether a customer is likely to churn based on input features.")
 
 # User Input 
+# Sidebar for User Input
+st.sidebar.header("🔹 Enter Customer Details")
 
-geography = st.selectbox('GeoGraphy', on_hot_encoder_geography.categories_[0])
-gender = st.selectbox("Gender", label_encoder_gender.classes_)
-age = st.slider("Age", 18, 92)
-balance = st.number_input('Balance')
-credit_score = st.slider('Credit Score', 300, 900)
-estimated_salary = st.number_input('Estimated Salary')
-tenure = st.slider('Tenure', 0, 10)
-num_of_prod = st.slider('Number of Products', 1, 4)
-has_cr_card = st.selectbox('Has Credit Card', [0, 1])
-is_active_member = st.selectbox('Is Active Member', [0, 1])
+gender = st.sidebar.selectbox("Gender", label_encoder_gender.classes_)
+geography = st.sidebar.selectbox('Geography', on_hot_encoder_geography.categories_[0])
+age = st.sidebar.slider("Age", 18, 92, 30)
+balance = st.sidebar.number_input('Balance', min_value=0.0, step=100.0, format="%.2f")
+credit_score = st.sidebar.slider('Credit Score', 300, 900, 650)
+estimated_salary = st.sidebar.number_input('Estimated Salary', min_value=0.0, step=500.0, format="%.2f")
+tenure = st.sidebar.slider('Tenure (Years)', 0, 10, 3)
+num_of_prod = st.sidebar.slider('Number of Products', 1, 4, 1)
+has_cr_card = st.sidebar.selectbox('Has Credit Card?', ['No', 'Yes'])
+is_active_member = st.sidebar.selectbox('Is Active Member?', ['No', 'Yes'])
+
+# Convert categorical inputs to numerical
+has_cr_card = 1 if has_cr_card == "Yes" else 0
+is_active_member = 1 if is_active_member == "Yes" else 0
 
 input_data =   pd.DataFrame({
     "CreditScore": [credit_score],
@@ -50,16 +64,26 @@ input_data =   pd.DataFrame({
 
 geo_encoded  = on_hot_encoder_geography.transform([input_data['Geography']])
 geo_encoded_df = pd.DataFrame(geo_encoded, columns=on_hot_encoder_geography.get_feature_names_out())
-input_data = pd.concat([input_data.drop(['Geography'], axis=1), geo_encoded_df], axis=1)
+data = pd.concat([input_data.drop(['Geography'], axis=1), geo_encoded_df], axis=1)
 
-st.write(input_data)
+data_scaled = scaler.transform(data)
 
-input_data_scaled = scaler.transform(input_data)
+# Show Data Before Prediction
+st.subheader("📋 Input Data Preview")
+st.dataframe(input_data)
+
 # Predict churn 
+if st.button("🔍 Predict Churn"):
+    prediction = model.predict(data_scaled)[0][0]
+    
+    # Display Prediction
+    st.subheader("📌 Prediction Result")
+    st.markdown(f"<p class='big-font'>Customer Churn Probability: <b>{prediction:.2%}</b></p>", unsafe_allow_html=True)
+    
+    # Progress Bar
+    st.progress(float(prediction))
 
-prediction = model.predict(input_data_scaled)[0][0]
-st.write(f"Customer Churn Probablity : {prediction}")
-if prediction > 0.5:
-    st.write("Customer is likely to churn.")
-else:
-    st.write("Customer is not likely to churn.")
+    if prediction > 0.5:
+        st.error("⚠️ This customer is likely to churn.")
+    else:
+        st.success("✅ This customer is not likely to churn.")
