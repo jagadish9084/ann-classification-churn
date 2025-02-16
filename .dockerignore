@@ -1,0 +1,9 @@
+logs/
+venv/
+.gitignore
+.dockerignore
+data/
+.README.md
+.git
+/notebooks
+Dockerfile
